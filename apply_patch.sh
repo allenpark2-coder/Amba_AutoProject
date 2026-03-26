@@ -34,10 +34,11 @@ XML="$SCRIPT_DIR/$MANIFEST_XML"
 
 echo "  版本: $NEW_VERSION  分支: $NEW_BRANCH"
 
-# 前置檢查
-[ -d "$WORK_DIR/ambarella" ] || { echo "ERROR: workspace/ambarella not found. Run init_sdk.sh first."; exit 1; }
+# 前置檢查（patch tarball 和 manifest XML）
 [ -f "$SCRIPT_DIR/$OUTER_TAR" ] || { echo "ERROR: Patch tarball not found: $OUTER_TAR"; exit 1; }
 [ -f "$XML" ] || { echo "ERROR: Manifest XML not found: $MANIFEST_XML"; exit 1; }
+
+GITLAB_SERVER=$(python3 -c "import json; d=json.load(open('$PROJECT_JSON')); print(d['gitlab_server'])")
 
 # ── XML 解析工具函式 ───────────────────────────────────────────────────────────
 get_all_paths() {
@@ -50,6 +51,75 @@ get_name_for_path() {
 }
 
 ALL_PATHS=$(get_all_paths "$XML")
+
+# ── workspace 不存在時，自動從 base tarball 還原 ──────────────────────────────
+if [ ! -d "$WORK_DIR/ambarella" ]; then
+    echo "=== [AUTO] workspace 不存在，自動還原 base SDK ==="
+
+    read -r BASE_TARBALL BASE_CONTAINER BASE_BRANCH BASE_XML_FILE <<EOF
+$(python3 -c "
+import json, sys
+d = json.load(open('$PROJECT_JSON'))
+based_on = next(v['based_on'] for v in d['versions'] if v['version'] == '$NEW_VERSION')
+for v in d['versions']:
+    if v['version'] == based_on and v['type'] == 'base':
+        print(v['tarball'])
+        print(v.get('tarball_container', ''))
+        print(v['branch'])
+        print(v['manifest_xml'])
+        sys.exit(0)
+sys.exit(1)
+")
+EOF
+
+    [ -f "$SCRIPT_DIR/$BASE_TARBALL" ] || { echo "ERROR: Base tarball 不存在: $BASE_TARBALL"; exit 1; }
+
+    echo "  解壓 $BASE_TARBALL（需要幾分鐘）..."
+    mkdir -p "$WORK_DIR"
+    case "$BASE_TARBALL" in
+        *.tar.xz)  tar xJf "$SCRIPT_DIR/$BASE_TARBALL" -C "$WORK_DIR" ;;
+        *.tar.gz)  tar xzf "$SCRIPT_DIR/$BASE_TARBALL" -C "$WORK_DIR" ;;
+        *.tar.bz2) tar xjf "$SCRIPT_DIR/$BASE_TARBALL" -C "$WORK_DIR" ;;
+        *.tar)     tar xf  "$SCRIPT_DIR/$BASE_TARBALL" -C "$WORK_DIR" ;;
+    esac
+
+    if [ -n "$BASE_CONTAINER" ] && [ -d "$WORK_DIR/$BASE_CONTAINER" ]; then
+        for item in "$WORK_DIR/$BASE_CONTAINER"/.[!.]* "$WORK_DIR/$BASE_CONTAINER"/*; do
+            [ -e "$item" ] && mv "$item" "$WORK_DIR/"
+        done
+        rmdir "$WORK_DIR/$BASE_CONTAINER"
+    fi
+
+    BASE_XML_PATH="$SCRIPT_DIR/$BASE_XML_FILE"
+    BASE_ALL_PATHS=$(get_all_paths "$BASE_XML_PATH")
+
+    # 建立 .gitignore（父 repo 排除子 repo）
+    echo "$BASE_ALL_PATHS" | while IFS= read -r repo_path; do
+        children=$(echo "$BASE_ALL_PATHS" | while IFS= read -r other; do
+            case "$other" in
+                "$repo_path"/*) rel="${other#$repo_path/}"; echo "${rel%%/*}" ;;
+            esac
+        done | sort -u)
+        [ -n "$children" ] && echo "$children" > "$WORK_DIR/$repo_path/.gitignore"
+    done
+
+    echo "  從 GitLab 還原各 repo 的 git 歷史..."
+    echo "$BASE_ALL_PATHS" | while IFS= read -r repo_path; do
+        repo_name=$(get_name_for_path "$BASE_XML_PATH" "$repo_path")
+        repo_dir="$WORK_DIR/$repo_path"
+        mkdir -p "$repo_dir"
+        git -C "$repo_dir" init -q
+        git -C "$repo_dir" remote add origin "${GITLAB_SERVER}:${repo_name}.git"
+        git -C "$repo_dir" fetch origin "$BASE_BRANCH" -q
+        # 設定 branch 指標，不覆蓋工作目錄的檔案
+        git -C "$repo_dir" update-ref "refs/heads/$BASE_BRANCH" FETCH_HEAD
+        git -C "$repo_dir" symbolic-ref HEAD "refs/heads/$BASE_BRANCH"
+        git -C "$repo_dir" read-tree "$BASE_BRANCH"
+        echo "    restored: $repo_path"
+    done
+
+    echo "  workspace 還原完成，繼續套用 patch..."
+fi
 
 # ── 解壓外層 tar，取出 inner .tar.bz2 ─────────────────────────────────────────
 echo "=== [2] Extracting outer tarball ==="

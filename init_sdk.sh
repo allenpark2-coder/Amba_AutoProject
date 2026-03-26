@@ -2,8 +2,32 @@
 # init_sdk.sh — 首次初始化 Cooper SDK 基礎版本
 # 解壓 tarball → git init 20 個 repo → push 到 GitLab
 # 前置條件: GitLab 上的 repo 已手動建立
+#
+# 用法:
+#   ./init_sdk.sh          正常執行（全自動）
+#   ./init_sdk.sh --step   逐步模式（每個步驟前暫停確認）
 
 set -e
+
+# ── 參數解析 ──────────────────────────────────────────────────────────────────
+STEP_BY_STEP=0
+for arg in "$@"; do
+    case "$arg" in
+        --step) STEP_BY_STEP=1 ;;
+        *) echo "ERROR: Unknown argument: $arg"; exit 1 ;;
+    esac
+done
+
+# 逐步模式：顯示步驟說明，等待 Enter 後繼續（q 離開）
+step_confirm() {
+    [ "$STEP_BY_STEP" -eq 0 ] && return
+    echo ""
+    echo ">>> 即將執行：$1"
+    printf "    按 Enter 繼續，輸入 q 離開: "
+    read -r ans
+    [ "$ans" = "q" ] && { echo "使用者中止。"; exit 0; }
+    return 0
+}
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_JSON="$SCRIPT_DIR/project.json"
@@ -12,9 +36,9 @@ PROJECT_JSON="$SCRIPT_DIR/project.json"
 [ -f "$PROJECT_JSON" ] || { echo "ERROR: project.json not found"; exit 1; }
 
 # ── 讀取設定 ──────────────────────────────────────────────────────────────────
+step_confirm "[1] 讀取 project.json — 找出 pending 的 base 版本設定"
 echo "=== [1] Reading config from project.json ==="
-read -r VERSION TARBALL CONTAINER MANIFEST_XML BRANCH <<EOF
-$(python3 -c "
+_out=$(python3 -c "
 import json, sys
 d = json.load(open('$PROJECT_JSON'))
 for v in d['versions']:
@@ -27,8 +51,12 @@ for v in d['versions']:
         sys.exit(0)
 print('ERROR: No pending base version found in project.json', file=sys.stderr)
 sys.exit(1)
-")
-EOF
+") || { echo "ERROR: 找不到 pending 的 base 版本，請確認 project.json"; exit 1; }
+VERSION=$(echo "$_out"    | sed -n '1p')
+TARBALL=$(echo "$_out"    | sed -n '2p')
+CONTAINER=$(echo "$_out"  | sed -n '3p')
+MANIFEST_XML=$(echo "$_out" | sed -n '4p')
+BRANCH=$(echo "$_out"     | sed -n '5p')
 
 GITLAB_SERVER=$(python3 -c "import json; d=json.load(open('$PROJECT_JSON')); print(d['gitlab_server'])")
 WORK_DIR="$SCRIPT_DIR/workspace"
@@ -37,8 +65,20 @@ XML="$SCRIPT_DIR/$MANIFEST_XML"
 echo "  版本: $VERSION  分支: $BRANCH"
 
 # 前置檢查
-[ -f "$SCRIPT_DIR/$TARBALL" ] || { echo "ERROR: Tarball not found: $TARBALL"; exit 1; }
-[ -f "$XML" ]                  || { echo "ERROR: Manifest XML not found: $MANIFEST_XML"; exit 1; }
+if [ ! -f "$SCRIPT_DIR/$TARBALL" ]; then
+    echo "ERROR: Tarball not found: $TARBALL"
+    echo "  請將 tarball 放到: $SCRIPT_DIR/"
+    echo "  目前目錄下的 tarball 檔案:"
+    ls "$SCRIPT_DIR"/*.tar* 2>/dev/null | sed 's/^/    /' || echo "    （無）"
+    exit 1
+fi
+if [ ! -f "$XML" ]; then
+    echo "ERROR: Manifest XML not found: $MANIFEST_XML"
+    echo "  請將 manifest XML 放到: $SCRIPT_DIR/"
+    echo "  目前目錄下的 XML 檔案:"
+    ls "$SCRIPT_DIR"/*.xml 2>/dev/null | sed 's/^/    /' || echo "    （無）"
+    exit 1
+fi
 
 # ── XML 解析工具函式 ───────────────────────────────────────────────────────────
 get_all_paths() {
@@ -53,6 +93,7 @@ get_name_for_path() {
 ALL_PATHS=$(get_all_paths "$XML")
 
 # ── 解壓 tarball ──────────────────────────────────────────────────────────────
+step_confirm "[2] 解壓 $TARBALL 到 workspace/（可能需要幾分鐘）"
 echo "=== [2] Extracting $TARBALL (this may take a while) ==="
 mkdir -p "$WORK_DIR"
 
@@ -74,6 +115,7 @@ if [ -n "$CONTAINER" ] && [ -d "$WORK_DIR/$CONTAINER" ]; then
 fi
 
 # ── Pass 1: 建立 .gitignore（父 repo 排除子 repo 目錄）────────────────────────
+step_confirm "[3] 建立 .gitignore — 讓父 repo 排除子 repo 目錄"
 echo "=== [3] Building .gitignore for parent repos ==="
 
 echo "$ALL_PATHS" | while IFS= read -r repo_path; do
@@ -95,6 +137,7 @@ echo "$ALL_PATHS" | while IFS= read -r repo_path; do
 done
 
 # ── Pass 2: git init + commit + push ─────────────────────────────────────────
+step_confirm "[4] git init + commit + push — 對 20 個 repo 依序執行（最耗時）"
 echo "=== [4] Initializing git repos and pushing to GitLab ==="
 
 echo "$ALL_PATHS" | while IFS= read -r repo_path; do
@@ -122,6 +165,7 @@ echo "$ALL_PATHS" | while IFS= read -r repo_path; do
 done
 
 # ── 更新 project.json ─────────────────────────────────────────────────────────
+step_confirm "[5] 更新 project.json — 將版本狀態改為 pushed"
 echo "=== [5] Updating project.json ==="
 python3 -c "
 import json
@@ -137,6 +181,7 @@ print('  project.json updated')
 "
 
 # ── 推送 manifest ─────────────────────────────────────────────────────────────
+step_confirm "[6] 推送 manifest XML 到 GitLab manifest repo"
 echo "=== [6] Pushing manifest XML ==="
 "$SCRIPT_DIR/push_manifest.sh" "$XML" "$BRANCH"
 

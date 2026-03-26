@@ -71,9 +71,11 @@ Amba_Project/
 `workspace/`，為父 repo（`ambarella/`）建立 `.gitignore` 排除子 repo 目錄，
 然後對 manifest XML 定義的所有 20 個 repo 執行 `git init` + `git add` +
 `git commit` + `git push`。最後呼叫 `push_manifest.sh` 更新 manifest repo。
+加上 `--step` 參數可進入逐步模式，每個步驟前暫停確認（按 Enter 繼續，輸入 `q` 離開）。
 
-**`apply_patch.sh`**：從 `project.json` 讀取待處理的 patch 版本。解壓雙層
-tarball 到 `workspace/`，執行 Ambarella 的 `apply.sh` 更新 SDK 檔案，
+**`apply_patch.sh`**：從 `project.json` 讀取待處理的 patch 版本。若 `workspace/`
+已被清除，會自動從對應的 base tarball 重新解壓，並從 GitLab fetch 回 git 歷史後
+繼續。解壓雙層 tarball 到 `workspace/`，執行 Ambarella 的 `apply.sh` 更新 SDK 檔案，
 再對每個 repo 建立新 branch、commit 變更並 push。最後呼叫 `push_manifest.sh`。
 
 **`push_manifest.sh`**：Clone GitLab manifest repo，將新的 manifest XML 複製進去，
@@ -99,6 +101,8 @@ repo sync
 3. **`ambarella/` 父 repo**：`ambarella/` 底下有 18 個子 repo 目錄，script 會自動建立 `.gitignore` 排除它們，避免被父 repo 追蹤。
 
 4. **大型 tarball**：base SDK 約 1.7 GB，patch 約 1.4 GB，解壓需要數分鐘。
+
+5. **套 patch 前 workspace 被清除**：`apply_patch.sh` 會自動偵測並從 base tarball 重新解壓、從 GitLab fetch git 歷史。因此 **base tarball 需保留在此目錄**，不可刪除（patch tarball 同理）。
 
 ## GitLab Repo List
 
