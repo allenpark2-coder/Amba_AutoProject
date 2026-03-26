@@ -1,0 +1,28 @@
+{
+  "gitlab_server": "git@venus.vivotek.tw",
+  "namespace": "ad-odm-rdd3/codebase/sdk/amab_cooper_sdk",
+  "manifest_repo": "git@venus.vivotek.tw:odm-rd3/manifest/amba-cv5x.git",
+  "work_dir": "./workspace",
+  "current_version": "",
+  "versions": [
+    {
+      "version": "2.5",
+      "tarball": "cooper_linux_sdk_2.5_cv2x_cv5x_cv7x_20241219.tar.xz",
+      "tarball_container": "cooper_linux_sdk_2.5_cv2x_cv5x_cv7x",
+      "manifest_xml": "amba_cv5_cooper_2.5.xml",
+      "branch": "COOPER_SDK-2.5-20241219-CV2X_CV5X_CV7X",
+      "type": "base",
+      "status": "pending"
+    },
+    {
+      "version": "2.5.2",
+      "tarball": "cooper_linux_2.5.2_cv2x_cv5x_cv7x_20250912.tar",
+      "inner_tarball": "cooper_patch_2.5.2_cv2x_cv5x_cv7x_20250912.tar.bz2",
+      "manifest_xml": "amba_cv5_cooper_2.5.2.xml",
+      "branch": "COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X",
+      "type": "patch",
+      "based_on": "2.5",
+      "status": "pending"
+    }
+  ]
+}

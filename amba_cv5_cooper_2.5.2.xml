@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+	<remote name="origin" fetch="ssh://git@venus.vivotek.tw"/>
+	<default revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" remote="origin" sync-c="1"/>
+	<project path="ambarella"                     name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/ambarella"    revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/app"                 name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/app"          revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/boards"              name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/boards"       revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/boot"                name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/boot"         revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/build"               name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/build"        revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/document"            name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/document"     revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/drv_modules"         name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/drv_modules"  revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/kernel"              name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/kernel"       revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/license"             name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/license"      revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/metadata"            name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/metadata"     revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/oryx_v2"             name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/oryx_v2"      revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/oss"                 name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/oss"          revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/oss_yocto"           name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/oss_yocto"    revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/packages"            name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/packages"     revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/prebuild"            name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/prebuild"     revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/rootfs"              name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/rootfs"       revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/security"            name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/security"     revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="ambarella/unit_test"           name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/unit_test"    revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+	<project path="external"                      name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/external"     revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+        <project path="doc"                           name="ad-odm-rdd3/codebase/sdk/amab_cooper_sdk/doc"          revision="COOPER_SDK-2.5.2-20250912-CV2X_CV5X_CV7X" sync-c="1"/>
+</manifest>

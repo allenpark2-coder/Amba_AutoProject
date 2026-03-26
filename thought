@@ -1,0 +1,11 @@
+1.使用繁體中文鈙述流程，除非是folder,或指令，或是一些專業名詞可以用英文
+2.skill.md,Cloud.md,subagent.md等等的md都用英文寫，並都使用放在這專案中
+3.目標1:我會從客戶那裡下載，一開始是Cooper2.5，然後我會解壓縮，並建立mainfest，為每個目錄建repo, 然後上傳，第二次如果又有 Cooper2.5.1的patch給我，
+     我就要把Cooper2.5+Cooper2.5.1的patch，並重做一次，以次累推，所以我想要建規則，讓有skill或是agent來幫忙自動化
+4.因為有不同版本建個json來維護這個專案的變數
+5.希望多用linux script並且規則要寫的簡單，不要用太多又難的正則式，或是特殊語法，儘量用一般人使用的語法
+
+
+先進claude plan mode
+superpowers:brainstorming
+                 
